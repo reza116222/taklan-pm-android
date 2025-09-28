@@ -1,11 +1,9 @@
-
 {
   "name": "taklan-pm-android",
   "version": "1.0.0",
   "description": "PM Management Android Build",
   "scripts": {
-    "build": "npm run build:web && npx cap sync android",
-    "build:web": "echo \"No web build step defined\"",
+    "build": "npx cap sync android",
     "android": "npx cap open android"
   },
   "dependencies": {
@@ -16,6 +14,3 @@
     "typescript": "^5.4.0"
   }
 }
-
-
----
