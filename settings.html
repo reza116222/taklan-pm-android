@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="assets/styles.css">
+<title>تنظیمات</title>
+</head>
+<body>
+<div class="header"><img src="assets/logo.png" class="logo"><div><h1 class="title">تنظیمات</h1><div>مدیریت و پیکربندی سیستم</div></div></div>
+
+<div class="card">
+  <h3>مدیریت کاربران</h3>
+  <label>نام کاربری: <input id="username"></label><br><br>
+  <label>نقش: 
+    <select id="role">
+      <option value="admin">ادمین</option>
+      <option value="operator">اپراتور</option>
+    </select>
+  </label><br><br>
+  <button onclick="addUser()">افزودن کاربر</button>
+  <div id="userList"></div>
+</div>
+
+<div class="card">
+  <h3>تغییر لوگو</h3>
+  <input type="file" id="logoInput" accept="image/*" onchange="previewLogo(event)"><br><br>
+  <img id="logoPreview" src="assets/logo.png" alt="لوگو" style="max-height:80px;">
+  <button onclick="saveLogo()">ذخیره لوگو</button>
+</div>
+
+<div class="card">
+  <h3>تغییر رنگ سازمانی</h3>
+  <input type="color" id="themeColor" value="#0ea5a4">
+  <button onclick="saveTheme()">ذخیره رنگ</button>
+</div>
+
+<div class="card">
+  <h3>درباره</h3>
+  <p>نرم‌افزار PM ماشین‌سازی تکلان - نسخه 1.0</p>
+  <p>پشتیبانی: 021-xxxxxxx</p>
+</div>
+
+<div class="footer"><a href="/">بازگشت</a></div>
+
+<script>
+function loadUsers(){
+  const users=JSON.parse(localStorage.getItem('users')||'[]');
+  const div=document.getElementById('userList'); div.innerHTML='';
+  users.forEach(u=>{
+    const p=document.createElement('p');
+    p.textContent=u.username+' ('+u.role+')';
+    div.appendChild(p);
+  });
+}
+function addUser(){
+  const u=document.getElementById('username').value;
+  const r=document.getElementById('role').value;
+  let users=JSON.parse(localStorage.getItem('users')||'[]');
+  users.push({username:u,role:r});
+  localStorage.setItem('users',JSON.stringify(users));
+  loadUsers();
+}
+function previewLogo(event){
+  const file=event.target.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=function(e){document.getElementById('logoPreview').src=e.target.result;};
+    reader.readAsDataURL(file);
+  }
+}
+function saveLogo(){
+  const src=document.getElementById('logoPreview').src;
+  localStorage.setItem('customLogo',src);
+  alert('لوگو ذخیره شد');
+}
+function saveTheme(){
+  const color=document.getElementById('themeColor').value;
+  localStorage.setItem('themeColor',color);
+  document.documentElement.style.setProperty('--main-color',color);
+  alert('رنگ سازمانی ذخیره شد');
+}
+function applySettings(){
+  const logo=localStorage.getItem('customLogo');
+  if(logo){document.querySelector('.logo').src=logo; document.getElementById('logoPreview').src=logo;}
+  const color=localStorage.getItem('themeColor');
+  if(color){document.documentElement.style.setProperty('--main-color',color); document.getElementById('themeColor').value=color;}
+  loadUsers();
+}
+applySettings();
+
+function applySettings(){ const logo=localStorage.getItem('customLogo'); if(logo){ document.querySelector('.logo').src=logo; document.getElementById('logoPreview').src=logo; } const color=localStorage.getItem('themeColor'); if(color){ document.documentElement.style.setProperty('--main-color',color); document.getElementById('themeColor').value=color; } loadUsers(); }
+// ensure at least one admin exists
+(function(){ let users=JSON.parse(localStorage.getItem('users')||'[]'); if(users.length===0){ users.push({username:'admin',role:'admin'}); localStorage.setItem('users',JSON.stringify(users)); } applySettings(); })();
+</script></body></html>

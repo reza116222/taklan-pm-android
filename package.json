@@ -1,0 +1,16 @@
+{
+  "name": "taklan-pm-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:web": "echo \"PWA is static in web/ - no build step needed (replace with your build script)\"",
+    "cap:sync": "npx cap sync android",
+    "cap:add:android": "npx cap add android",
+    "cap:copy": "npx cap copy",
+    "android:open": "npx cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/android": "^5.0.0"
+  }
+}

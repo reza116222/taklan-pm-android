@@ -1,0 +1,6 @@
+{
+  "appId": "com.taklan.pm",
+  "appName": "Taklan PM",
+  "webDir": "web",
+  "bundledWebRuntime": false
+}

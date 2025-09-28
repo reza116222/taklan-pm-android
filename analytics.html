@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="assets/styles.css">
+<title>آنالیز</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="header"><img src="assets/logo.png" class="logo"><div><h1 class="title">آنالیز و آمار</h1></div></div>
+
+<div class="card"><h3>روند سرویس‌ها (ماهانه)</h3><canvas id="lineChart"></canvas></div>
+<div class="card"><h3>مقایسه دستگاه‌ها</h3><canvas id="barChart"></canvas></div>
+
+<div class="footer"><a href="/">بازگشت</a></div>
+
+<script>
+const ctx1=document.getElementById('lineChart').getContext('2d');
+new Chart(ctx1,{type:'line',data:{labels:['فروردین','اردیبهشت','خرداد','تیر','مرداد'],datasets:[{label:'تعداد سرویس',data:[5,8,6,10,7],borderColor:'#0ea5a4'}]}});
+const ctx2=document.getElementById('barChart').getContext('2d');
+new Chart(ctx2,{type:'bar',data:{labels:['بورینگ CNC','فرز وسطی','تراش TOS','سنگ مسطح'],datasets:[{label:'تعداد سرویس',data:[12,9,15,6],backgroundColor:['#16a34a','#2563eb','#f59e0b','#e11d48']} ]}});
+</script>
+<script src='assets/util.js'></script></body></html>

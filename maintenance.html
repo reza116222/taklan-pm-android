@@ -1,0 +1,51 @@
+<!doctype html><html lang="fa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="assets/styles.css"><title>سرویس و نگهداری</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head><body>
+<div class="header"><img src="assets/logo.png" class="logo"><div><h1 class="title">سرویس و نگهداری</h1><div>چک‌لیست‌های PM برای تمام دستگاه‌ها</div></div></div>
+
+<script>
+function getSession(){return JSON.parse(localStorage.getItem('pm_session')||'null');}
+function requireAuth(allowedRoles){ const s=getSession(); if(!s){ location.href='login.html'; return false;} if(allowedRoles && allowedRoles.length && !allowedRoles.includes(s.role)){ document.body.innerHTML='<div style="padding:20px"><h2>دسترسی مجاز نیست</h2><p>برای ادامه با حساب ادمین وارد شوید.</p><a href="/login.html">ورود</a></div>'; return false;} return true;}
+function renderUserBadge(){ const s=getSession(); const el=document.querySelector('.header'); if(!el) return; const span=document.createElement('div'); span.style.marginTop='6px'; span.innerHTML=(s?('<b>کاربر:</b> '+s.user+' ('+s.role+') <button onclick="logout()" style="margin-left:8px">خروج</button>'):'<a href="/login.html">ورود</a>'); el.appendChild(span);}
+function logout(){ localStorage.removeItem('pm_session'); location.href='login.html'; }
+</script>
+
+<script> if(!requireAuth([])){} else { renderUserBadge(); }</script>
+
+<div class="card actions"><button class="btn-pdf" onclick="exportPagePDF('body','maintenance.pdf')">Export (PDF)</button><button class="btn-csv" onclick="exportMaintenanceCSV()">Export (CSV)</button></div>
+
+<div class="card">
+  <h3>افزودن سرویس (برای ادمین)</h3>
+  <label>دستگاه: <input id="svcDevice" placeholder="نام دستگاه"></label><br><br>
+  <label>شرح: <input id="svcDesc" placeholder="شرح فعالیت"></label><br><br>
+  <label>تاریخ: <input id="svcDate" type="date"></label><br><br>
+  <button onclick="addService()">افزودن</button>
+</div>
+
+<div id="maintenanceArea"></div>
+<div class="footer"><a href="/">بازگشت</a></div>
+
+<script>
+function loadPM(){ return JSON.parse(localStorage.getItem('pm_data')||'{"devices":[],"services":[],"emergencies":[]}'); }
+function savePM(d){ localStorage.setItem('pm_data', JSON.stringify(d)); }
+function renderMaintenance(){
+  const pm = loadPM(); const area=document.getElementById('maintenanceArea'); area.innerHTML='';
+  pm.devices.forEach(dev=>{
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML = '<h3>'+dev.name+'</h3>';
+    const table=document.createElement('table'); table.className='table'; table.innerHTML='<thead><tr><th>ردیف</th><th>تاریخ</th><th>شرح</th><th>وضعیت</th></tr><tbody></tbody>';
+    const tbody=table.querySelector('tbody');
+    const services = pm.services.filter(s=>s.device===dev.name);
+    services.forEach((s,i)=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+(i+1)+'</td><td>'+s.date+'</td><td>'+s.desc+'</td><td>'+s.status+'</td>'; tbody.appendChild(tr); });
+    card.appendChild(table); area.appendChild(card);
+  });
+}
+function addService(){
+  const sUser = JSON.parse(localStorage.getItem('pm_session')||'null'); if(!sUser || sUser.role !== 'admin'){ alert('فقط ادمین می‌تواند سرویس اضافه کند'); return; }
+  const dev=document.getElementById('svcDevice').value||'نامشخص'; const desc=document.getElementById('svcDesc').value||''; const date=document.getElementById('svcDate').value||new Date().toISOString().slice(0,10);
+  const pm = loadPM(); pm.services = pm.services || []; pm.services.push({device:dev,desc:desc,date:date,status:'done'}); savePM(pm); renderMaintenance(); }
+function exportMaintenanceCSV(){ const pm=loadPM(); let lines=['Device,Date,Description,Status']; pm.services.forEach(s=>{ lines.push('"'+s.device+'","'+s.date+'","'+s.desc+'","'+s.status+'"'); }); const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='maintenance_all_devices.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+function exportPagePDF(selector, filename){ exportPagePDF_original(selector, filename); } // will call injected pdf func if exists
+renderMaintenance();
+</script><script src='assets/util.js'></script></body></html>

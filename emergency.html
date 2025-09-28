@@ -1,0 +1,52 @@
+<!doctype html><html lang="fa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="assets/styles.css"><title>تعمیرات اضطراری</title></head><body>
+<div class="header"><img src="assets/logo.png" class="logo"><div><h1 class="title">تعمیرات اضطراری</h1><div>ثبت و پیگیری موارد بحرانی</div></div></div>
+
+<script>
+function getSession(){return JSON.parse(localStorage.getItem('pm_session')||'null');}
+function requireAuth(allowedRoles){ const s=getSession(); if(!s){ location.href='login.html'; return false;} if(allowedRoles && allowedRoles.length && !allowedRoles.includes(s.role)){ document.body.innerHTML='<div style="padding:20px"><h2>دسترسی مجاز نیست</h2><p>برای ادامه با حساب ادمین وارد شوید.</p><a href="/login.html">ورود</a></div>'; return false;} return true;}
+function renderUserBadge(){ const s=getSession(); const el=document.querySelector('.header'); if(!el) return; const span=document.createElement('div'); span.style.marginTop='6px'; span.innerHTML=(s?('<b>کاربر:</b> '+s.user+' ('+s.role+') <button onclick="logout()" style="margin-left:8px">خروج</button>'):'<a href="/login.html">ورود</a>'); el.appendChild(span);}
+function logout(){ localStorage.removeItem('pm_session'); location.href='login.html'; }
+</script>
+
+<script> if(!requireAuth([])){} else { renderUserBadge(); }</script>
+
+<div class="card">
+  <h3>ثبت مشکل جدید</h3>
+  <label>دستگاه: <input id="devName" placeholder="نام دستگاه"></label><br><br>
+  <label>شرح مشکل: <input id="issueDesc" placeholder="توضیحات"></label><br><br>
+  <label>تاریخ: <input id="issueDate" type="date"></label><br><br>
+  <button onclick="addIssue()">ثبت</button>
+</div>
+
+<div class="card actions"><button class="btn-csv" onclick="exportEmergencyCSV()">Export (CSV)</button></div>
+
+<div id="issuesList"></div>
+
+<div class="footer"><a href='/'>بازگشت</a></div>
+
+<script>
+function loadPM(){ return JSON.parse(localStorage.getItem('pm_data')||'{"devices":[],"services":[],"emergencies":[]}'); }
+function savePM(d){ localStorage.setItem('pm_data', JSON.stringify(d)); }
+function loadIssues(){ const d=loadPM(); return d.emergencies || []; }
+function renderIssues(){
+  const list = loadIssues(); const cont=document.getElementById('issuesList'); cont.innerHTML='';
+  list.forEach((it,idx)=>{
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML = '<h3>'+it.device+'</h3><p>'+it.desc+' ('+it.date+')</p><p>وضعیت: <b>'+ (it.status||'open') +'</b></p>' +
+      '<div style="margin-top:8px"><button onclick="toggleStatus('+idx+')">تغییر وضعیت</button> <button onclick="editIssue('+idx+')">ویرایش</button> <button onclick="deleteIssue('+idx+')">حذف</button></div>';
+    cont.appendChild(card);
+  });
+}
+function addIssue(){
+  const dev=document.getElementById('devName').value||'نامشخص';
+  const desc=document.getElementById('issueDesc').value||'';
+  const date=document.getElementById('issueDate').value||new Date().toISOString().slice(0,10);
+  const pm=loadPM(); pm.emergencies = pm.emergencies || []; pm.emergencies.push({device:dev,desc:desc,date:date,status:'open'}); savePM(pm); renderIssues();
+}
+function toggleStatus(i){ const pm=loadPM(); pm.emergencies[i].status = (pm.emergencies[i].status==='closed')?'open':'closed'; savePM(pm); renderIssues(); }
+function deleteIssue(i){ if(!confirm('آیا حذف شود؟')) return; const pm=loadPM(); pm.emergencies.splice(i,1); savePM(pm); renderIssues(); }
+function editIssue(i){ const pm=loadPM(); const it=pm.emergencies[i]; const newDesc=prompt('ویرایش شرح', it.desc); if(newDesc!==null){ it.desc=newDesc; pm.emergencies[i]=it; savePM(pm); renderIssues(); } }
+function exportEmergencyCSV(){ const list=loadIssues(); let lines=['Device,Description,Date,Status']; list.forEach(i=>{ lines.push('"'+i.device+'","'+i.desc+'","'+i.date+'","'+(i.status||'open')+'"'); }); const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='emergency.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+renderIssues();
+</script><script src='assets/util.js'></script></body></html>

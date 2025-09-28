@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fa">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="assets/styles.css"><title>ورود - PM تکلان</title></head>
+<body>
+<div class="header"><img src="assets/logo.png" class="logo"><div><h1 class="title">ورود به سامانه PM</h1><div>ماشین‌سازی تکلان</div></div></div>
+<div class="card">
+  <h3>ورود کاربر</h3>
+  <label>نام کاربری: <input id="username" placeholder="مثال: admin"></label><br><br>
+  <label>نقش: 
+    <select id="role">
+      <option value="admin">ادمین</option>
+      <option value="operator">اپراتور</option>
+    </select>
+  </label><br><br>
+  <button onclick="login()">ورود</button>
+  <p style="color:#666;margin-top:8px">اگر قبلاً کاربری ثبت نشده است، پس از ورود اولیه به تنظیمات برو و کاربر بساز.</p>
+</div>
+<div class="footer"><a href="/">بازگشت</a></div>
+<script>
+function login(){
+  const u=document.getElementById('username').value.trim();
+  const r=document.getElementById('role').value;
+  if(!u){ alert('نام کاربری را وارد کنید'); return; }
+  // Save session (no password for simplicity)
+  const session = {user:u, role:r, ts:Date.now()};
+  localStorage.setItem('pm_session', JSON.stringify(session));
+  location.href = 'index.html';
+}
+</script>
+</body></html>

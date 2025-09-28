@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="assets/styles.css"><title>داشبورد PM - تکلان</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head><body>
+<div class="header"><img src="assets/logo.png" class="logo"><div><h1 class="title">داشبورد مدیریت PM</h1><div>ماشین‌سازی تکلان</div></div></div>
+
+<script>
+function getSession(){return JSON.parse(localStorage.getItem('pm_session')||'null');}
+function requireAuth(allowedRoles){ const s=getSession(); if(!s){ location.href='login.html'; return false;} if(allowedRoles && allowedRoles.length && !allowedRoles.includes(s.role)){ document.body.innerHTML='<div style="padding:20px"><h2>دسترسی مجاز نیست</h2><p>برای ادامه با حساب ادمین وارد شوید.</p><a href="/login.html">ورود</a></div>'; return false;} return true;}
+function renderUserBadge(){ const s=getSession(); const el=document.querySelector('.header'); if(!el) return; const span=document.createElement('div'); span.style.marginTop='6px'; span.innerHTML=(s?('<b>کاربر:</b> '+s.user+' ('+s.role+') <button onclick="logout()" style="margin-left:8px">خروج</button>'):'<a href="/login.html">ورود</a>'); el.appendChild(span);}
+function logout(){ localStorage.removeItem('pm_session'); location.href='login.html'; }
+</script>
+
+<script> if(!requireAuth([])){} else { renderUserBadge(); }</script>
+
+<div class="card menu">
+  <a href="maintenance.html">سرویس و نگهداری</a>
+  <a href="emergency.html">تعمیرات اضطراری</a>
+  <a href="reports.html">گزارش‌ها</a>
+  <a href="devices.html">شناسنامهٔ ماشین‌آلات</a>
+  <a href="analytics.html">آنالیز و آمار</a>
+  <a href="settings.html">تنظیمات</a>
+</div>
+
+<div class="card" id="summaryCard"><h3>آمار کلی</h3><div id="summaryContent">در حال بارگذاری...</div></div>
+
+<div class="card"><h3>نمودار ترکیبی</h3><canvas id="comboChart"></canvas></div>
+
+<div class="card"><h3>آخرین سرویس‌ها</h3><table class="table"><thead><tr><th>دستگاه</th><th>تاریخ</th><th>وضعیت</th></tr></thead><tbody id="recentServices"></tbody></table></div>
+
+<div class="footer">نسخه کامل PM — تکلان</div>
+
+<script>
+// Load structured data from localStorage or initialize
+function loadData(){ const d = JSON.parse(localStorage.getItem('pm_data')||'null'); if(d) return d;
+// initialize from embedded devices list in page (generated server-side)
+const devices = [{"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM)", "specs": []}, {"name": "دفترچه نهایی سرویس و نگهداری", "specs": []}, {"name": "دفترچه سرویس و نگهداری — دستگاه", "specs": []}, {"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM)", "specs": []}, {"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM)", "specs": []}, {"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM)", "specs": []}, {"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM)", "specs": []}, {"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM)", "specs": []}, {"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM)", "specs": []}, {"name": "دفترچه سرویس و نگهداری پیشگیرانه (PM) — نسخه نهایی", "specs": []}];
+const data = { devices: devices, services: [], emergencies: [] };
+localStorage.setItem('pm_data', JSON.stringify(data));
+return data; }
+
+function saveData(d){ localStorage.setItem('pm_data', JSON.stringify(d)); }
+
+function renderSummary(){ const d = loadData(); const totalDevices = d.devices.length; const totalServices = d.services.length; const openEmerg = d.emergencies.filter(e=>e.status!=='closed').length; document.getElementById('summaryContent').innerHTML = `تعداد دستگاه‌ها: ${totalDevices} — سرویس‌ها: ${totalServices} — اضطراری‌های باز: ${openEmerg}`; }
+
+function renderRecent(){ const d = loadData(); const tbody = document.getElementById('recentServices'); tbody.innerHTML=''; const recent = d.services.slice(-5).reverse(); recent.forEach(s=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+s.device+'</td><td>'+s.date+'</td><td>'+s.status+'</td>'; tbody.appendChild(tr); }); }
+
+function renderCharts(){ const d=loadData(); const ctx = document.getElementById('comboChart').getContext('2d'); const labels = ['فروردین','اردیبهشت','خرداد','تیر','مرداد']; const barData = d.devices.map((dd,i)=> (d.services.filter(s=>s.device===dd.name).length) ); const lineData = [5,8,6,10,7]; new Chart(ctx,{ type:'bar', data:{ labels: d.devices.map(x=>x.name), datasets:[{type:'bar',label:'سرویس‌ها',data:barData,backgroundColor:'#16a34a'},{type:'line',label:'روند',data:lineData,borderColor:'#2563eb',fill:false}] }, options:{responsive:true, maintainAspectRatio:false} }); }
+
+// init
+(function(){ const d = loadData(); renderSummary(); renderRecent(); renderCharts(); })();
+
+</script>
+<script src='assets/util.js'></script></body></html>

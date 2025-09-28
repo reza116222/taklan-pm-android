@@ -1,0 +1,39 @@
+<!doctype html><html lang="fa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="assets/styles.css"><title>گزارش‌ها</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head><body>
+<div class="header"><img src="assets/logo.png" class="logo"><div><h1 class="title">گزارش‌ها</h1><div>تولید گزارش های سفارشی</div></div></div>
+
+<script>
+function getSession(){return JSON.parse(localStorage.getItem('pm_session')||'null');}
+function requireAuth(allowedRoles){ const s=getSession(); if(!s){ location.href='login.html'; return false;} if(allowedRoles && allowedRoles.length && !allowedRoles.includes(s.role)){ document.body.innerHTML='<div style="padding:20px"><h2>دسترسی مجاز نیست</h2><p>برای ادامه با حساب ادمین وارد شوید.</p><a href="/login.html">ورود</a></div>'; return false;} return true;}
+function renderUserBadge(){ const s=getSession(); const el=document.querySelector('.header'); if(!el) return; const span=document.createElement('div'); span.style.marginTop='6px'; span.innerHTML=(s?('<b>کاربر:</b> '+s.user+' ('+s.role+') <button onclick="logout()" style="margin-left:8px">خروج</button>'):'<a href="/login.html">ورود</a>'); el.appendChild(span);}
+function logout(){ localStorage.removeItem('pm_session'); location.href='login.html'; }
+</script>
+
+<script> if(!requireAuth([])){} else { renderUserBadge(); }</script>
+<div class="card">
+  <h3>انتخاب گزارش پیشرفته</h3>
+  <label>دستگاه‌ها (ترکیبی با کاما): <input id="devicesInput" placeholder="مثال: بورینگ CNC,فرز وسطی"></label><br><br>
+  <label>از تاریخ: <input id="fromDate" type="date"></label><label style="margin-right:10px">تا تاریخ: <input id="toDate" type="date"></label><br><br>
+  <button onclick="generateReport()">تولید گزارش</button>
+</div>
+<div class="card actions"><button class="btn-pdf" onclick="exportPagePDF('#reportArea','report.pdf')">Export (PDF)</button> <button class="btn-csv" onclick="exportReportCSV()">Export (CSV)</button></div>
+<div id="reportArea" class="card"><h3>نتیجه</h3><table class="table"><thead><tr><th>دستگاه</th><th>تاریخ</th><th>شرح</th></tr></thead><tbody id="reportBody"></tbody></table></div>
+<div class="footer"><a href='/'>بازگشت</a></div>
+<script>
+function loadPM(){ return JSON.parse(localStorage.getItem('pm_data')||'{"devices":[],"services":[],"emergencies":[]}'); }
+function generateReport(){
+  const devicesStr=document.getElementById('devicesInput').value.trim();
+  const arr = devicesStr? devicesStr.split(',').map(s=>s.trim()) : [];
+  const from=document.getElementById('fromDate').value || '';
+  const to=document.getElementById('toDate').value || '';
+  const data = loadPM();
+  const rows = data.services.filter(s=> (arr.length? arr.includes(s.device): true) && (from? s.date>=from:true) && (to? s.date<=to:true));
+  const tbody=document.getElementById('reportBody'); tbody.innerHTML='';
+  rows.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML='<td>'+r.device+'</td><td>'+r.date+'</td><td>'+r.desc+'</td>'; tbody.appendChild(tr); });
+}
+function exportReportCSV(){ let lines=['Device,Date,Description']; document.querySelectorAll('#reportBody tr').forEach(r=>{const c=r.querySelectorAll('td'); lines.push('"'+c[0].innerText+'","'+c[1].innerText+'","'+c[2].innerText+'"');}); const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='report.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+async function exportPagePDF(selector, filename){ const el=document.querySelector(selector)||document.body; const canvas=await html2canvas(el,{scale:1}); const imgData=canvas.toDataURL('image/png'); const { jsPDF }=window.jspdf; const pdf=new jsPDF(); const imgProps=pdf.getImageProperties(imgData); const pdfWidth=pdf.internal.pageSize.getWidth()-20; const pdfHeight=(imgProps.height*pdfWidth)/imgProps.width; pdf.addImage(imgData,'PNG',10,10,pdfWidth,pdfHeight); pdf.save(filename); }
+</script><script src='assets/util.js'></script></body></html>
