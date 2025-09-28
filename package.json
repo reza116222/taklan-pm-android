@@ -1,16 +1,21 @@
+
 {
-  "name": "taklan-pm-mobile",
+  "name": "taklan-pm-android",
   "version": "1.0.0",
-  "private": true,
+  "description": "PM Management Android Build",
   "scripts": {
-    "build:web": "echo \"PWA is static in web/ - no build step needed (replace with your build script)\"",
-    "cap:sync": "npx cap sync android",
-    "cap:add:android": "npx cap add android",
-    "cap:copy": "npx cap copy",
-    "android:open": "npx cap open android"
+    "build": "npm run build:web && npx cap sync android",
+    "build:web": "echo \"No web build step defined\"",
+    "android": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/core": "^6.1.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^5.0.0",
-    "@capacitor/android": "^5.0.0"
+    "typescript": "^5.4.0"
   }
 }
+
+
+---
